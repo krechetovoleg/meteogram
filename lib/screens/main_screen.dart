@@ -1,7 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:meteogram/models/current_weather_model.dart';
 import 'package:meteogram/services/current_weather_services.dart';
+import 'package:meteogram/models/city_search_model.dart';
+import 'package:meteogram/services/city_search_servises.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,8 +14,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final CurrentWeatherServices _currentWeatherServices =
       CurrentWeatherServices();
+
+  final CitySearchServises _citySearchServises = CitySearchServises();
+
   bool _isLoading = false;
   CurrentWeather? _currentWeather;
+  CiySearch? _ciySearch;
 
   //final TextEditingController _controller = TextEditingController();
 
@@ -34,14 +39,43 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _getCityName(String cityName, String lang) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final citySearch = await _citySearchServises.featchCitySearch(
+      cityName,
+      lang,
+    );
+
+    setState(() {
+      _ciySearch = citySearch;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //_getCurrentWeather(); //running initialisation code; getting prefs etc.
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Text(
-          _currentWeather == null
-              ? ''
-              : _currentWeather!.apparentTemperature.toString(),
+        child: Column(
+          children: [
+            Text(_currentWeather == null ? '' : _currentWeather!.time),
+            Text(
+              _currentWeather == null
+                  ? ''
+                  : _currentWeather!.apparentTemperature.toString(),
+            ),
+            Text(_ciySearch == null ? '' : _ciySearch!.cityName[0]),
+            Text(_ciySearch == null ? '' : _ciySearch!.country[0]),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -49,6 +83,7 @@ class _MainScreenState extends State<MainScreen> {
         foregroundColor: Colors.black,
         onPressed: () {
           _getCurrentWeather();
+          _getCityName('Новосиб', 'ru');
         },
         child: Icon(Icons.add),
       ),

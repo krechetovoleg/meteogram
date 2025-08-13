@@ -1,4 +1,5 @@
 class CurrentWeather {
+  final String time;
   final double temperature;
   final int relativeHumidity;
   final double apparentTemperature;
@@ -15,6 +16,7 @@ class CurrentWeather {
   final double windGusts;
 
   CurrentWeather({
+    required this.time,
     required this.temperature,
     required this.relativeHumidity,
     required this.apparentTemperature,
@@ -33,6 +35,7 @@ class CurrentWeather {
 
   factory CurrentWeather.fromJson(Map<String, dynamic> json) {
     return CurrentWeather(
+      time: json['current']['time'],
       temperature: json['current']['temperature_2m'],
       relativeHumidity: json['current']['relative_humidity_2m'],
       apparentTemperature: json['current']['apparent_temperature'],
