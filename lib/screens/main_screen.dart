@@ -3,6 +3,7 @@ import 'package:meteogram/models/current_weather_model.dart';
 import 'package:meteogram/services/current_weather_services.dart';
 import 'package:meteogram/models/city_search_model.dart';
 import 'package:meteogram/services/city_search_servises.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,18 +18,17 @@ class _MainScreenState extends State<MainScreen> {
 
   final CitySearchServises _citySearchServises = CitySearchServises();
 
-  bool _isLoading = false;
   CurrentWeather? _currentWeather;
   CiySearch? _ciySearch;
   bool _visibleResultCity = false;
   bool _visibleSearchField = false;
   final _searchController = TextEditingController();
+  String cityNamePref = "";
+  String countryPref = "";
+  String latitudePref = "";
+  String longitudePref = "";
 
   void _getCurrentWeather(String latitude, String longitude) async {
-    setState(() {
-      _isLoading = true;
-    });
-
     final currentWeather = await _currentWeatherServices.featchCurrentWeather(
       latitude,
       longitude,
@@ -36,15 +36,10 @@ class _MainScreenState extends State<MainScreen> {
 
     setState(() {
       _currentWeather = currentWeather;
-      _isLoading = false;
     });
   }
 
   void _getCityName(String cityName, String lang) async {
-    setState(() {
-      _isLoading = true;
-    });
-
     final citySearch = await _citySearchServises.featchCitySearch(
       cityName.trim(),
       lang.trim(),
@@ -52,13 +47,45 @@ class _MainScreenState extends State<MainScreen> {
 
     setState(() {
       _ciySearch = citySearch;
-      _isLoading = false;
     });
+  }
+
+  Future<void> _readPref(bool onlyRead) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      cityNamePref = prefs.getString('city') ?? "";
+      countryPref = prefs.getString('country') ?? "";
+      latitudePref = prefs.getString('latitude') ?? "";
+      longitudePref = prefs.getString('longitude') ?? "";
+
+      if (cityNamePref != "") {
+        countryPref = "($countryPref)";
+        _searchController.text = "$cityNamePref $countryPref";
+      }
+
+      if (latitudePref != "" && longitudePref != "" && !onlyRead) {
+        _getCurrentWeather(latitudePref, longitudePref);
+      }
+    });
+  }
+
+  Future<void> _savePref(
+    String cityNamePref,
+    String countryPref,
+    String latitudePref,
+    String longitudePref,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('city', cityNamePref);
+    prefs.setString('country', countryPref);
+    prefs.setString('latitude', latitudePref);
+    prefs.setString('longitude', longitudePref);
   }
 
   @override
   void initState() {
     super.initState();
+    _readPref(false);
     _searchController.addListener(() {
       if (_searchController.text.length >= 3) {
         _getCityName(_searchController.text, 'ru');
@@ -75,17 +102,17 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _visibleSearchField = !_visibleSearchField;
-                if (!_visibleSearchField) {
-                  _searchController.text = "";
-                  _currentWeather = null;
-                }
-              });
-            },
-            icon: Icon(_visibleSearchField ? Icons.clear : Icons.search),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _visibleSearchField = !_visibleSearchField;
+                  });
+                },
+                icon: Icon(_visibleSearchField ? Icons.clear : Icons.search),
+              ),
+            ],
           ),
         ],
         title: _visibleSearchField
@@ -97,11 +124,18 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
-                    hintStyle: TextStyle(color: Colors.black),
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        _searchController.text = "";
+                      },
+                      icon: const Icon(Icons.cancel_outlined),
+                    ),
+                    hintStyle: const TextStyle(color: Colors.black),
                     hintText: "Поиск...",
                     border: InputBorder.none,
-                    contentPadding: EdgeInsetsGeometry.only(
+                    contentPadding: const EdgeInsetsGeometry.only(
                       left: 8,
                       right: 8,
                       bottom: 4,
@@ -147,10 +181,35 @@ class _MainScreenState extends State<MainScreen> {
                                               : 0]
                                           .toString(),
                                     ),
-                                    _searchController.text = _ciySearch!
-                                        .cityName[index > 0 ? (index - 1) : 0]
-                                        .trim(),
-                                    _visibleResultCity = false,
+                                    _searchController.text =
+                                        "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]})",
+                                    setState(() {
+                                      _visibleResultCity = false;
+                                      _visibleSearchField = false;
+                                      cityNamePref =
+                                          _ciySearch!.cityName[index > 0
+                                              ? (index - 1)
+                                              : 0];
+                                      countryPref = _ciySearch!
+                                          .country[index > 0 ? (index - 1) : 0];
+                                      latitudePref = _ciySearch!
+                                          .latitude[index > 0 ? (index - 1) : 0]
+                                          .toString();
+                                      longitudePref = _ciySearch!
+                                          .longitude[index > 0
+                                              ? (index - 1)
+                                              : 0]
+                                          .toString();
+                                    }),
+
+                                    _savePref(
+                                      cityNamePref,
+                                      countryPref,
+                                      latitudePref,
+                                      longitudePref,
+                                    ),
+
+                                    _readPref(true),
                                   };
                           },
                           child: ListTile(
@@ -168,18 +227,23 @@ class _MainScreenState extends State<MainScreen> {
                         );
                       },
                     )
-                  : Center(child: Text('Нет данных')),
+                  : Center(child: Text('')),
             ),
-            Text(_currentWeather == null ? '' : _currentWeather!.time),
-            Text(
-              _currentWeather == null
-                  ? ''
-                  : _currentWeather!.apparentTemperature.toString(),
+            Center(child: Text("$cityNamePref $countryPref")),
+            Center(
+              child: Text(_currentWeather == null ? '' : _currentWeather!.time),
+            ),
+            Center(
+              child: Text(
+                _currentWeather == null
+                    ? ''
+                    : _currentWeather!.apparentTemperature.toString(),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      /*floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xff03dac6),
         foregroundColor: Colors.black,
         onPressed: () {
@@ -187,7 +251,7 @@ class _MainScreenState extends State<MainScreen> {
           _getCityName('Новосиб', 'ru');
         },
         child: Icon(Icons.add),
-      ),
+      ),*/
     );
   }
 }

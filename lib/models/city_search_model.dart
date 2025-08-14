@@ -1,8 +1,8 @@
 class CiySearch {
-  final List<String> cityName;
-  final List<double> latitude;
-  final List<double> longitude;
-  final List<String> country;
+  List<String> cityName;
+  List<double> latitude;
+  List<double> longitude;
+  List<String> country;
 
   CiySearch({
     required this.cityName,
