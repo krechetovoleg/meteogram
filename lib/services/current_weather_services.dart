@@ -9,7 +9,7 @@ class CurrentWeatherServices {
   ) async {
     try {
       final url = Uri.parse(
-        'https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m',
+        'https://api.open-meteo.com/v1/forecast?latitude=${latitude.trim()}&longitude=${longitude.trim()}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m',
       );
 
       final responce = await http.get(url);
@@ -17,10 +17,10 @@ class CurrentWeatherServices {
       if (responce.statusCode == 200) {
         return CurrentWeather.fromJson(json.decode(responce.body));
       } else {
-        throw ('Ошибка! Получения текущих данных!');
+        throw ("Ошибка! Получения текущих данных!");
       }
     } catch (e) {
-      throw ('Ошибка! Получения текущих данных!');
+      throw ("Ошибка! Получения текущих данных! $e.toString()");
     }
   }
 }
