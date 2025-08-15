@@ -1,4 +1,4 @@
-import 'package:meteogram/models/city_search_model.dart';
+import '../models/city_search_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 

@@ -3,12 +3,16 @@ class CiySearch {
   List<double> latitude;
   List<double> longitude;
   List<String> country;
+  List<String> timezone;
+  List<String> admin1;
 
   CiySearch({
     required this.cityName,
     required this.latitude,
     required this.longitude,
     required this.country,
+    required this.timezone,
+    required this.admin1,
   });
 
   factory CiySearch.fromJson(Map<String, dynamic> json) {
@@ -17,6 +21,8 @@ class CiySearch {
       latitude: [],
       longitude: [],
       country: [],
+      timezone: [],
+      admin1: [],
     );
 
     if (json.length > 1) {
@@ -25,6 +31,8 @@ class CiySearch {
         citys.latitude.add(json['results'][i]['latitude']);
         citys.longitude.add(json['results'][i]['longitude']);
         citys.country.add(json['results'][i]['country']);
+        citys.timezone.add(json['results'][i]['timezone']);
+        citys.admin1.add(json['results'][i]['admin1']);
       }
     }
     return citys;

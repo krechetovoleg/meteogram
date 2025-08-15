@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:meteogram/models/current_weather_model.dart';
-import 'package:meteogram/services/current_weather_services.dart';
-import 'package:meteogram/models/city_search_model.dart';
-import 'package:meteogram/services/city_search_servises.dart';
+import 'package:flutter/services.dart';
+import 'package:meteogram/widgets/cards_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/current_weather_model.dart';
+import '../services/current_weather_services.dart';
+import '../models/city_search_model.dart';
+import '../services/city_search_servises.dart';
+import '../theme/theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -27,11 +30,18 @@ class _MainScreenState extends State<MainScreen> {
   String countryPref = "";
   String latitudePref = "";
   String longitudePref = "";
+  String timezonePref = "";
+  String admin1Pref = "";
 
-  void _getCurrentWeather(String latitude, String longitude) async {
+  void _getCurrentWeather(
+    String latitude,
+    String longitude,
+    String timezone,
+  ) async {
     final currentWeather = await _currentWeatherServices.featchCurrentWeather(
       latitude,
       longitude,
+      timezone,
     );
 
     setState(() {
@@ -57,14 +67,16 @@ class _MainScreenState extends State<MainScreen> {
       countryPref = prefs.getString('country') ?? "";
       latitudePref = prefs.getString('latitude') ?? "";
       longitudePref = prefs.getString('longitude') ?? "";
+      timezonePref = prefs.getString('timezone') ?? "GMT";
+      admin1Pref = prefs.getString('admin1') ?? "";
 
       if (cityNamePref != "") {
-        countryPref = "($countryPref)";
+        countryPref = "($countryPref / $admin1Pref)";
         _searchController.text = "$cityNamePref $countryPref";
       }
 
       if (latitudePref != "" && longitudePref != "" && !onlyRead) {
-        _getCurrentWeather(latitudePref, longitudePref);
+        _getCurrentWeather(latitudePref, longitudePref, timezonePref);
       }
     });
   }
@@ -74,16 +86,22 @@ class _MainScreenState extends State<MainScreen> {
     String countryPref,
     String latitudePref,
     String longitudePref,
+    String timezonePref,
+    String admin1Pref,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('city', cityNamePref);
     prefs.setString('country', countryPref);
     prefs.setString('latitude', latitudePref);
     prefs.setString('longitude', longitudePref);
+    prefs.setString('timezone', timezonePref);
+    prefs.setString('admin1', admin1Pref);
   }
 
   @override
   void initState() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
     super.initState();
     _readPref(false);
     _searchController.addListener(() {
@@ -92,8 +110,6 @@ class _MainScreenState extends State<MainScreen> {
         _visibleResultCity = true;
       }
     });
-
-    //_getCurrentWeather(); //running initialisation code; getting prefs etc.
   }
 
   @override
@@ -101,6 +117,8 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        backgroundColor: backgroundColor,
+        iconTheme: const IconThemeData(color: textColor),
         actions: [
           Row(
             children: [
@@ -119,7 +137,7 @@ class _MainScreenState extends State<MainScreen> {
             ? Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  //color: textColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextField(
@@ -131,16 +149,18 @@ class _MainScreenState extends State<MainScreen> {
                         _searchController.text = "";
                       },
                       icon: const Icon(Icons.cancel_outlined),
+                      color: textColor,
                     ),
-                    hintStyle: const TextStyle(color: Colors.black),
+                    hintStyle: const TextStyle(color: textColor),
                     hintText: "Поиск...",
                     border: InputBorder.none,
                     contentPadding: const EdgeInsetsGeometry.only(
                       left: 8,
                       right: 8,
-                      bottom: 4,
+                      top: 4,
                     ),
                   ),
+                  style: const TextStyle(color: textColor),
                   onChanged: (value) {
                     setState(() {
                       _visibleSearchField = true;
@@ -148,10 +168,15 @@ class _MainScreenState extends State<MainScreen> {
                   },
                 ),
               )
-            : const Text("Метеограм"),
+            : Text(
+                "Метеограм",
+                style: TextStyle(fontSize: 26, color: textColor),
+              ),
       ),
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Visibility(
               visible:
@@ -180,9 +205,12 @@ class _MainScreenState extends State<MainScreen> {
                                               ? (index - 1)
                                               : 0]
                                           .toString(),
+                                      _ciySearch!.timezone[index > 0
+                                          ? (index - 1)
+                                          : 0],
                                     ),
                                     _searchController.text =
-                                        "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]})",
+                                        "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})",
                                     setState(() {
                                       _visibleResultCity = false;
                                       _visibleSearchField = false;
@@ -200,6 +228,13 @@ class _MainScreenState extends State<MainScreen> {
                                               ? (index - 1)
                                               : 0]
                                           .toString();
+                                      timezonePref =
+                                          _ciySearch!.timezone[index > 0
+                                              ? (index - 1)
+                                              : 0];
+
+                                      admin1Pref = _ciySearch!
+                                          .admin1[index > 0 ? (index - 1) : 0];
                                     }),
 
                                     _savePref(
@@ -207,6 +242,8 @@ class _MainScreenState extends State<MainScreen> {
                                       countryPref,
                                       latitudePref,
                                       longitudePref,
+                                      timezonePref,
+                                      admin1Pref,
                                     ),
 
                                     _readPref(true),
@@ -216,42 +253,43 @@ class _MainScreenState extends State<MainScreen> {
                             title: Text(
                               _ciySearch == null || _ciySearch!.cityName.isEmpty
                                   ? ""
-                                  : "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]})",
+                                  : "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})",
+                              style: TextStyle(fontSize: 18, color: textColor),
                             ),
                             subtitle: Text(
                               _ciySearch == null || _ciySearch!.cityName.isEmpty
                                   ? ""
                                   : "lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}",
+                              style: TextStyle(fontSize: 14, color: textColor),
                             ),
                           ),
                         );
                       },
                     )
-                  : Center(child: Text('')),
+                  : SizedBox(height: 0),
             ),
-            Center(child: Text("$cityNamePref $countryPref")),
-            Center(
-              child: Text(_currentWeather == null ? '' : _currentWeather!.time),
-            ),
-            Center(
-              child: Text(
-                _currentWeather == null
+
+            Expanded(
+              flex: 20,
+              child: CardWidget(
+                supTopStr: "$cityNamePref $countryPref",
+                supTopSize: 18.0,
+                topStr:
+                    '${_currentWeather == null ? '' : _currentWeather!.temperature.toString()} °C',
+                topSize: 36.0,
+                centerStr:
+                    'Ощущается как: ${_currentWeather == null ? '' : _currentWeather!.apparentTemperature.toString()} °C',
+                centerSize: 18.0,
+                bottomStr: _currentWeather == null
                     ? ''
-                    : _currentWeather!.apparentTemperature.toString(),
+                    : "${_currentWeather!.time.substring(8, 10)}.${_currentWeather!.time.substring(5, 7)}.${_currentWeather!.time.substring(0, 4)} ${_currentWeather!.time.substring(11, 16)}",
+                bottomSize: 14.0,
+                width: double.infinity,
               ),
             ),
           ],
         ),
       ),
-      /*floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xff03dac6),
-        foregroundColor: Colors.black,
-        onPressed: () {
-          _getCurrentWeather('55.03442', '82.94339');
-          _getCityName('Новосиб', 'ru');
-        },
-        child: Icon(Icons.add),
-      ),*/
     );
   }
 }
