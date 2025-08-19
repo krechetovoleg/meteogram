@@ -9,6 +9,8 @@ class CardWidget extends StatelessWidget {
   final double topSize;
   final String centerStr;
   final double centerSize;
+  final String centerBottomStr;
+  final double centerBottomSize;
   final String bottomStr;
   final double bottomSize;
   final double width;
@@ -21,6 +23,8 @@ class CardWidget extends StatelessWidget {
     required this.topSize,
     required this.centerStr,
     required this.centerSize,
+    required this.centerBottomStr,
+    required this.centerBottomSize,
     required this.bottomStr,
     required this.bottomSize,
     required this.width,
@@ -66,6 +70,7 @@ class CardWidget extends StatelessWidget {
                   child: Text(
                     supTopStr,
                     style: TextStyle(fontSize: supTopSize, color: textColor),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -81,6 +86,7 @@ class CardWidget extends StatelessWidget {
                   child: Text(
                     topStr,
                     style: TextStyle(fontSize: topSize, color: textColor),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -96,6 +102,26 @@ class CardWidget extends StatelessWidget {
                   child: Text(
                     centerStr,
                     style: TextStyle(fontSize: centerSize, color: textColor),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12.0,
+                    top: 2,
+                    right: 12,
+                    bottom: 2,
+                  ),
+                  child: Text(
+                    centerBottomStr,
+                    style: TextStyle(
+                      fontSize: centerBottomSize,
+                      color: textColor,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -111,11 +137,88 @@ class CardWidget extends StatelessWidget {
                   child: Text(
                     bottomStr,
                     style: TextStyle(fontSize: bottomSize, color: textColor),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class CardWidgetSmall extends StatelessWidget {
+  final String topStr;
+  final double topSize;
+  final String bottomStr;
+  final double bottomSize;
+  final double width;
+
+  const CardWidgetSmall({
+    super.key,
+    required this.topStr,
+    required this.topSize,
+    required this.bottomStr,
+    required this.bottomSize,
+    required this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final mainBorderColor = ColorController();
+
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: mainBorderColor.bColor.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 100,
+          ),
+        ],
+      ),
+      child: Card(
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: mainBorderColor.bColor, width: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 12, right: 12),
+                child: ImageIcon(
+                  AssetImage(topStr),
+                  size: topSize,
+                  color: textColor,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 12.0,
+                  top: 2,
+                  right: 12,
+                  bottom: 12,
+                ),
+                child: Text(
+                  bottomStr,
+                  style: TextStyle(fontSize: bottomSize, color: textColor),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

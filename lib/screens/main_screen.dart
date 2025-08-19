@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meteogram/widgets/cards_widget.dart';
+import 'package:meteogram/services/hourly_weather_services.dart';
+import '../controllers/color_controller.dart';
+import '../models/hourly_weather_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/cards_widget.dart';
+import '../widgets/datatable_widget.dart';
+import '../widgets/tab_widget.dart';
 import '../models/current_weather_model.dart';
 import '../services/current_weather_services.dart';
 import '../models/city_search_model.dart';
@@ -20,18 +25,22 @@ class _MainScreenState extends State<MainScreen> {
       CurrentWeatherServices();
 
   final CitySearchServises _citySearchServises = CitySearchServises();
+  final HourlyWeatherServices _hourlyWeatherServices = HourlyWeatherServices();
 
   CurrentWeather? _currentWeather;
   CiySearch? _ciySearch;
+  HourlyWeather? _hourlyWeather;
+
   bool _visibleResultCity = false;
   bool _visibleSearchField = false;
   final _searchController = TextEditingController();
-  String cityNamePref = "";
-  String countryPref = "";
-  String latitudePref = "";
-  String longitudePref = "";
-  String timezonePref = "";
-  String admin1Pref = "";
+  String cityNamePref = '';
+  String countryPref = '';
+  String latitudePref = '';
+  String longitudePref = '';
+  String timezonePref = '';
+  String admin1Pref = '';
+  double widthScreen = double.infinity;
 
   void _getCurrentWeather(
     String latitude,
@@ -60,23 +69,40 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _getHourlyWeather(
+    String latitude,
+    String longitude,
+    String timezone,
+  ) async {
+    final hourlyWeather = await _hourlyWeatherServices.featchHourlyWeather(
+      latitude,
+      longitude,
+      timezone,
+    );
+
+    setState(() {
+      _hourlyWeather = hourlyWeather;
+    });
+  }
+
   Future<void> _readPref(bool onlyRead) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      cityNamePref = prefs.getString('city') ?? "";
-      countryPref = prefs.getString('country') ?? "";
-      latitudePref = prefs.getString('latitude') ?? "";
-      longitudePref = prefs.getString('longitude') ?? "";
-      timezonePref = prefs.getString('timezone') ?? "GMT";
-      admin1Pref = prefs.getString('admin1') ?? "";
+      cityNamePref = prefs.getString('city') ?? '';
+      countryPref = prefs.getString('country') ?? '';
+      latitudePref = prefs.getString('latitude') ?? '';
+      longitudePref = prefs.getString('longitude') ?? '';
+      timezonePref = prefs.getString('timezone') ?? 'GMT';
+      admin1Pref = prefs.getString('admin1') ?? '';
 
-      if (cityNamePref != "") {
-        countryPref = "($countryPref / $admin1Pref)";
-        _searchController.text = "$cityNamePref $countryPref";
+      if (cityNamePref != '') {
+        countryPref = '($countryPref / $admin1Pref)';
+        _searchController.text = '$cityNamePref $countryPref';
       }
 
-      if (latitudePref != "" && longitudePref != "" && !onlyRead) {
+      if (latitudePref != '' && longitudePref != '' && !onlyRead) {
         _getCurrentWeather(latitudePref, longitudePref, timezonePref);
+        _getHourlyWeather(latitudePref, longitudePref, timezonePref);
       }
     });
   }
@@ -103,6 +129,7 @@ class _MainScreenState extends State<MainScreen> {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     super.initState();
+
     _readPref(false);
     _searchController.addListener(() {
       if (_searchController.text.length >= 3) {
@@ -110,6 +137,51 @@ class _MainScreenState extends State<MainScreen> {
         _visibleResultCity = true;
       }
     });
+  }
+
+  String _windDir(int wd) {
+    String res = '';
+
+    if (wd >= 0 && wd <= 22) {
+      res = 'С';
+    } else if (wd >= 23 && wd <= 67) {
+      res = 'СВ';
+    } else if (wd >= 68 && wd <= 112) {
+      res = 'В';
+    } else if (wd >= 113 && wd <= 157) {
+      res = 'ЮВ';
+    } else if (wd >= 158 && wd <= 202) {
+      res = 'Ю';
+    } else if (wd >= 203 && wd <= 247) {
+      res = 'ЮЗ';
+    } else if (wd >= 248 && wd <= 292) {
+      res = 'З';
+    } else if (wd >= 293 && wd <= 337) {
+      res = 'СЗ';
+    } else if (wd >= 338 && wd <= 360) {
+      res = 'С';
+    }
+
+    return res;
+  }
+
+  String _cloudCover(int cc) {
+    String res = '';
+    if (cc >= 0 && cc <= 10) {
+      res = 'ясно';
+    } else if (cc >= 11 && cc <= 29) {
+      res = 'преимущественно ясно';
+    } else if (cc >= 30 && cc <= 45) {
+      res = 'переменная облачность';
+    } else if (cc >= 46 && cc <= 70) {
+      res = 'облачно с прояснениями';
+    } else if (cc >= 71 && cc <= 90) {
+      res = 'преимущественно облачно';
+    } else if (cc >= 91 && cc <= 100) {
+      res = 'облачно';
+    }
+
+    return res;
   }
 
   @override
@@ -146,13 +218,13 @@ class _MainScreenState extends State<MainScreen> {
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
                       onPressed: () {
-                        _searchController.text = "";
+                        _searchController.text = '';
                       },
                       icon: const Icon(Icons.cancel_outlined),
                       color: textColor,
                     ),
                     hintStyle: const TextStyle(color: textColor),
-                    hintText: "Поиск...",
+                    hintText: 'Поиск...',
                     border: InputBorder.none,
                     contentPadding: const EdgeInsetsGeometry.only(
                       left: 8,
@@ -169,7 +241,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               )
             : Text(
-                "Метеограм",
+                'Метеограм',
                 style: TextStyle(fontSize: 26, color: textColor),
               ),
       ),
@@ -210,7 +282,7 @@ class _MainScreenState extends State<MainScreen> {
                                           : 0],
                                     ),
                                     _searchController.text =
-                                        "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})",
+                                        '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
                                     setState(() {
                                       _visibleResultCity = false;
                                       _visibleSearchField = false;
@@ -252,14 +324,14 @@ class _MainScreenState extends State<MainScreen> {
                           child: ListTile(
                             title: Text(
                               _ciySearch == null || _ciySearch!.cityName.isEmpty
-                                  ? ""
-                                  : "${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})",
+                                  ? ''
+                                  : '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
                               style: TextStyle(fontSize: 18, color: textColor),
                             ),
                             subtitle: Text(
                               _ciySearch == null || _ciySearch!.cityName.isEmpty
-                                  ? ""
-                                  : "lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}",
+                                  ? ''
+                                  : 'lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}',
                               style: TextStyle(fontSize: 14, color: textColor),
                             ),
                           ),
@@ -272,19 +344,90 @@ class _MainScreenState extends State<MainScreen> {
             Expanded(
               flex: 20,
               child: CardWidget(
-                supTopStr: "$cityNamePref $countryPref",
+                supTopStr: '$cityNamePref \n$countryPref',
                 supTopSize: 18.0,
                 topStr:
                     '${_currentWeather == null ? '' : _currentWeather!.temperature.toString()} °C',
-                topSize: 36.0,
+                topSize: 40.0,
                 centerStr:
                     'Ощущается как: ${_currentWeather == null ? '' : _currentWeather!.apparentTemperature.toString()} °C',
                 centerSize: 18.0,
+
+                centerBottomStr: _currentWeather == null
+                    ? ''
+                    : _cloudCover(_currentWeather!.cloudCover),
+                centerBottomSize: 16.0,
                 bottomStr: _currentWeather == null
                     ? ''
-                    : "${_currentWeather!.time.substring(8, 10)}.${_currentWeather!.time.substring(5, 7)}.${_currentWeather!.time.substring(0, 4)} ${_currentWeather!.time.substring(11, 16)}",
+                    : '${_currentWeather!.time.substring(8, 10)}.${_currentWeather!.time.substring(5, 7)}.${_currentWeather!.time.substring(0, 4)} ${_currentWeather!.time.substring(11, 16)}',
                 bottomSize: 14.0,
-                width: double.infinity,
+                width: widthScreen,
+              ),
+            ),
+            Expanded(
+              flex: 15,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: CardWidgetSmall(
+                      topStr: 'assets/images/pressure.png',
+                      topSize: 24.0,
+                      bottomStr: _currentWeather == null
+                          ? ''
+                          : (_currentWeather!.surfacePressure / 1.333220)
+                                .toStringAsFixed(2),
+                      bottomSize: 18,
+                      width: (widthScreen * 0.28).roundToDouble(),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: CardWidgetSmall(
+                      topStr: 'assets/images/humidity.png',
+                      topSize: 24.0,
+                      bottomStr: _currentWeather == null
+                          ? ''
+                          : _currentWeather!.relativeHumidity.toStringAsFixed(
+                              2,
+                            ),
+                      bottomSize: 18,
+                      width: (widthScreen * 0.28).roundToDouble(),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: CardWidgetSmall(
+                      topStr: 'assets/images/wind.png',
+                      topSize: 24.0,
+                      bottomStr: _currentWeather == null
+                          ? ''
+                          : '${(_currentWeather!.windSpeed / 3.6).toStringAsFixed(2)} ${_windDir(_currentWeather!.windDirection)}',
+                      bottomSize: 18,
+                      width: (widthScreen * 0.28).roundToDouble(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 65,
+              child: TabWidget(
+                time: _hourlyWeather == null ? [] : _hourlyWeather!.time,
+                temperature: _hourlyWeather == null
+                    ? []
+                    : _hourlyWeather!.temperature,
+                relativeHumidity: _hourlyWeather == null
+                    ? []
+                    : _hourlyWeather!.relativeHumidity,
+                windSpeed: _hourlyWeather == null
+                    ? []
+                    : _hourlyWeather!.windSpeed,
+                surfacePressure: _hourlyWeather == null
+                    ? []
+                    : _hourlyWeather!.surfacePressure,
               ),
             ),
           ],
