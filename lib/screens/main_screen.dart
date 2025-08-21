@@ -5,7 +5,6 @@ import '../controllers/color_controller.dart';
 import '../models/hourly_weather_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/cards_widget.dart';
-import '../widgets/datatable_widget.dart';
 import '../widgets/tab_widget.dart';
 import '../models/current_weather_model.dart';
 import '../services/current_weather_services.dart';
@@ -26,12 +25,14 @@ class _MainScreenState extends State<MainScreen> {
 
   final CitySearchServises _citySearchServises = CitySearchServises();
   final HourlyWeatherServices _hourlyWeatherServices = HourlyWeatherServices();
+  var mainBorderColor = ColorController();
 
   CurrentWeather? _currentWeather;
   CiySearch? _ciySearch;
   HourlyWeather? _hourlyWeather;
 
-  bool _visibleResultCity = false;
+  bool isloading = true;
+
   bool _visibleSearchField = false;
   final _searchController = TextEditingController();
   String cityNamePref = '';
@@ -40,7 +41,9 @@ class _MainScreenState extends State<MainScreen> {
   String longitudePref = '';
   String timezonePref = '';
   String admin1Pref = '';
-  double widthScreen = double.infinity;
+
+  late double widthScreen = MediaQuery.of(context).size.width;
+  late double heightScreen = MediaQuery.of(context).size.height;
 
   void _getCurrentWeather(
     String latitude,
@@ -88,6 +91,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _readPref(bool onlyRead) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      isloading = true;
       cityNamePref = prefs.getString('city') ?? '';
       countryPref = prefs.getString('country') ?? '';
       latitudePref = prefs.getString('latitude') ?? '';
@@ -100,10 +104,11 @@ class _MainScreenState extends State<MainScreen> {
         _searchController.text = '$cityNamePref $countryPref';
       }
 
-      if (latitudePref != '' && longitudePref != '' && !onlyRead) {
+      if (latitudePref != '' && longitudePref != '' && onlyRead) {
         _getCurrentWeather(latitudePref, longitudePref, timezonePref);
         _getHourlyWeather(latitudePref, longitudePref, timezonePref);
       }
+      isloading = false;
     });
   }
 
@@ -130,11 +135,10 @@ class _MainScreenState extends State<MainScreen> {
 
     super.initState();
 
-    _readPref(false);
+    _readPref(true);
     _searchController.addListener(() {
       if (_searchController.text.length >= 3) {
         _getCityName(_searchController.text, 'ru');
-        _visibleResultCity = true;
       }
     });
   }
@@ -192,25 +196,21 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: backgroundColor,
         iconTheme: const IconThemeData(color: textColor),
         actions: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _visibleSearchField = !_visibleSearchField;
-                  });
-                },
-                icon: Icon(_visibleSearchField ? Icons.clear : Icons.search),
-              ),
-            ],
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _visibleSearchField = !_visibleSearchField;
+              });
+            },
+            icon: Icon(_visibleSearchField ? Icons.clear : Icons.search),
           ),
         ],
         title: _visibleSearchField
-            ? Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  //color: textColor,
-                  borderRadius: BorderRadius.circular(8),
+            ? Card(
+                color: backgroundColor,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: mainBorderColor.bColor, width: 2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: TextField(
                   controller: _searchController,
@@ -229,7 +229,7 @@ class _MainScreenState extends State<MainScreen> {
                     contentPadding: const EdgeInsetsGeometry.only(
                       left: 8,
                       right: 8,
-                      top: 4,
+                      top: 12,
                     ),
                   ),
                   style: const TextStyle(color: textColor),
@@ -241,198 +241,229 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               )
             : Text(
-                'Метеограм',
+                'AzMeteoGram',
                 style: TextStyle(fontSize: 26, color: textColor),
               ),
       ),
       backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Visibility(
-              visible:
-                  _searchController.text.isEmpty ||
-                      _searchController.text.length < 3 ||
-                      _visibleResultCity == false
-                  ? false
-                  : true,
-              child: _ciySearch != null && _ciySearch!.cityName.isNotEmpty
-                  ? ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _ciySearch!.cityName.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return GestureDetector(
-                          onTap: () {
-                            _ciySearch == null || _ciySearch!.cityName.isEmpty
-                                ? () {}
-                                : {
-                                    _getCurrentWeather(
-                                      _ciySearch!
-                                          .latitude[index > 0 ? (index - 1) : 0]
-                                          .toString(),
-                                      _ciySearch!
-                                          .longitude[index > 0
-                                              ? (index - 1)
-                                              : 0]
-                                          .toString(),
-                                      _ciySearch!.timezone[index > 0
-                                          ? (index - 1)
-                                          : 0],
-                                    ),
-                                    _searchController.text =
-                                        '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
-                                    setState(() {
-                                      _visibleResultCity = false;
-                                      _visibleSearchField = false;
-                                      cityNamePref =
-                                          _ciySearch!.cityName[index > 0
-                                              ? (index - 1)
-                                              : 0];
-                                      countryPref = _ciySearch!
-                                          .country[index > 0 ? (index - 1) : 0];
-                                      latitudePref = _ciySearch!
-                                          .latitude[index > 0 ? (index - 1) : 0]
-                                          .toString();
-                                      longitudePref = _ciySearch!
-                                          .longitude[index > 0
-                                              ? (index - 1)
-                                              : 0]
-                                          .toString();
-                                      timezonePref =
-                                          _ciySearch!.timezone[index > 0
-                                              ? (index - 1)
-                                              : 0];
-
-                                      admin1Pref = _ciySearch!
-                                          .admin1[index > 0 ? (index - 1) : 0];
-                                    }),
-
-                                    _savePref(
-                                      cityNamePref,
-                                      countryPref,
-                                      latitudePref,
-                                      longitudePref,
-                                      timezonePref,
-                                      admin1Pref,
-                                    ),
-
-                                    _readPref(true),
-                                  };
-                          },
-                          child: ListTile(
-                            title: Text(
-                              _ciySearch == null || _ciySearch!.cityName.isEmpty
-                                  ? ''
-                                  : '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
-                              style: TextStyle(fontSize: 18, color: textColor),
-                            ),
-                            subtitle: Text(
-                              _ciySearch == null || _ciySearch!.cityName.isEmpty
-                                  ? ''
-                                  : 'lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}',
-                              style: TextStyle(fontSize: 14, color: textColor),
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : SizedBox(height: 0),
-            ),
-
-            Expanded(
-              flex: 20,
-              child: CardWidget(
-                supTopStr: '$cityNamePref \n$countryPref',
-                supTopSize: 18.0,
-                topStr:
-                    '${_currentWeather == null ? '' : _currentWeather!.temperature.toString()} °C',
-                topSize: 40.0,
-                centerStr:
-                    'Ощущается как: ${_currentWeather == null ? '' : _currentWeather!.apparentTemperature.toString()} °C',
-                centerSize: 18.0,
-
-                centerBottomStr: _currentWeather == null
-                    ? ''
-                    : _cloudCover(_currentWeather!.cloudCover),
-                centerBottomSize: 16.0,
-                bottomStr: _currentWeather == null
-                    ? ''
-                    : '${_currentWeather!.time.substring(8, 10)}.${_currentWeather!.time.substring(5, 7)}.${_currentWeather!.time.substring(0, 4)} ${_currentWeather!.time.substring(11, 16)}',
-                bottomSize: 14.0,
-                width: widthScreen,
-              ),
-            ),
-            Expanded(
-              flex: 15,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.max,
+      body: isloading
+          ? Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: IndexedStack(
+                index: _visibleSearchField == true ? 1 : 0,
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: CardWidgetSmall(
-                      topStr: 'assets/images/pressure.png',
-                      topSize: 24.0,
-                      bottomStr: _currentWeather == null
-                          ? ''
-                          : (_currentWeather!.surfacePressure / 1.333220)
-                                .toStringAsFixed(2),
-                      bottomSize: 18,
-                      width: (widthScreen * 0.28).roundToDouble(),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: CardWidgetSmall(
-                      topStr: 'assets/images/humidity.png',
-                      topSize: 24.0,
-                      bottomStr: _currentWeather == null
-                          ? ''
-                          : _currentWeather!.relativeHumidity.toStringAsFixed(
-                              2,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 20,
+                        child: CardWidget(
+                          supTopStr: cityNamePref,
+                          supTopSize: 16.0,
+                          supTopStr2: countryPref,
+                          supTopSize2: 12.0,
+                          topStr:
+                              '${_currentWeather == null ? '' : _currentWeather!.temperature.toString()} °C',
+                          topSize: 30.0,
+                          centerStr:
+                              'Ощущается как: ${_currentWeather == null ? '' : _currentWeather!.apparentTemperature.toString()} °C',
+                          centerSize: 14.0,
+
+                          centerBottomStr: _currentWeather == null
+                              ? ''
+                              : _cloudCover(_currentWeather!.cloudCover),
+                          centerBottomSize: 12.0,
+                          bottomStr: _currentWeather == null
+                              ? ''
+                              : '${_currentWeather!.time.substring(8, 10)}.${_currentWeather!.time.substring(5, 7)}.${_currentWeather!.time.substring(0, 4)} ${_currentWeather!.time.substring(11, 16)}',
+                          bottomSize: 10.0,
+                          width: widthScreen,
+                          curWeather: _currentWeather,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 10,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: CardWidgetSmall(
+                                topStr: 'assets/images/pressure.png',
+                                topSize: 24.0,
+                                bottomStr: _currentWeather == null
+                                    ? ''
+                                    : (_currentWeather!.surfacePressure /
+                                              1.333220)
+                                          .toStringAsFixed(2),
+                                bottomSize: 18,
+                                width: (widthScreen * 0.28).roundToDouble(),
+                              ),
                             ),
-                      bottomSize: 18,
-                      width: (widthScreen * 0.28).roundToDouble(),
-                    ),
+                            Expanded(
+                              flex: 1,
+                              child: CardWidgetSmall(
+                                topStr: 'assets/images/humidity.png',
+                                topSize: 24.0,
+                                bottomStr: _currentWeather == null
+                                    ? ''
+                                    : _currentWeather!.relativeHumidity
+                                          .toStringAsFixed(2),
+                                bottomSize: 18,
+                                width: (widthScreen * 0.28).roundToDouble(),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: CardWidgetSmall(
+                                topStr: 'assets/images/wind.png',
+                                topSize: 24.0,
+                                bottomStr: _currentWeather == null
+                                    ? ''
+                                    : '${(_currentWeather!.windSpeed / 3.6).toStringAsFixed(2)} ${_windDir(_currentWeather!.windDirection)}',
+                                bottomSize: 18,
+                                width: (widthScreen * 0.28).roundToDouble(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 65,
+                        child: TabWidget(
+                          time: _hourlyWeather == null
+                              ? []
+                              : _hourlyWeather!.time,
+                          temperature: _hourlyWeather == null
+                              ? []
+                              : _hourlyWeather!.temperature,
+                          relativeHumidity: _hourlyWeather == null
+                              ? []
+                              : _hourlyWeather!.relativeHumidity,
+                          windSpeed: _hourlyWeather == null
+                              ? []
+                              : _hourlyWeather!.windSpeed,
+                          surfacePressure: _hourlyWeather == null
+                              ? []
+                              : _hourlyWeather!.surfacePressure,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 1,
-                    child: CardWidgetSmall(
-                      topStr: 'assets/images/wind.png',
-                      topSize: 24.0,
-                      bottomStr: _currentWeather == null
-                          ? ''
-                          : '${(_currentWeather!.windSpeed / 3.6).toStringAsFixed(2)} ${_windDir(_currentWeather!.windDirection)}',
-                      bottomSize: 18,
-                      width: (widthScreen * 0.28).roundToDouble(),
-                    ),
+                  SingleChildScrollView(
+                    child: _ciySearch != null && _ciySearch!.cityName.isNotEmpty
+                        ? Card(
+                            color: backgroundColor,
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                color: mainBorderColor.bColor,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: _ciySearch!.cityName.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    _ciySearch == null ||
+                                            _ciySearch!.cityName.isEmpty
+                                        ? () {}
+                                        : {
+                                            _getCurrentWeather(
+                                              _ciySearch!
+                                                  .latitude[index > 0
+                                                      ? (index - 1)
+                                                      : 0]
+                                                  .toString(),
+                                              _ciySearch!
+                                                  .longitude[index > 0
+                                                      ? (index - 1)
+                                                      : 0]
+                                                  .toString(),
+                                              _ciySearch!.timezone[index > 0
+                                                  ? (index - 1)
+                                                  : 0],
+                                            ),
+                                            _searchController.text =
+                                                '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
+                                            setState(() {
+                                              _visibleSearchField = false;
+                                              cityNamePref =
+                                                  _ciySearch!.cityName[index > 0
+                                                      ? (index - 1)
+                                                      : 0];
+                                              countryPref =
+                                                  _ciySearch!.country[index > 0
+                                                      ? (index - 1)
+                                                      : 0];
+                                              latitudePref = _ciySearch!
+                                                  .latitude[index > 0
+                                                      ? (index - 1)
+                                                      : 0]
+                                                  .toString();
+                                              longitudePref = _ciySearch!
+                                                  .longitude[index > 0
+                                                      ? (index - 1)
+                                                      : 0]
+                                                  .toString();
+                                              timezonePref =
+                                                  _ciySearch!.timezone[index > 0
+                                                      ? (index - 1)
+                                                      : 0];
+
+                                              admin1Pref =
+                                                  _ciySearch!.admin1[index > 0
+                                                      ? (index - 1)
+                                                      : 0];
+                                            }),
+
+                                            _savePref(
+                                              cityNamePref,
+                                              countryPref,
+                                              latitudePref,
+                                              longitudePref,
+                                              timezonePref,
+                                              admin1Pref,
+                                            ),
+
+                                            _readPref(true),
+                                          };
+                                  },
+                                  child: ListTile(
+                                    title: Text(
+                                      _ciySearch == null ||
+                                              _ciySearch!.cityName.isEmpty
+                                          ? ''
+                                          : '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      _ciySearch == null ||
+                                              _ciySearch!.cityName.isEmpty
+                                          ? ''
+                                          : 'lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        : SizedBox(height: 0),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              flex: 65,
-              child: TabWidget(
-                time: _hourlyWeather == null ? [] : _hourlyWeather!.time,
-                temperature: _hourlyWeather == null
-                    ? []
-                    : _hourlyWeather!.temperature,
-                relativeHumidity: _hourlyWeather == null
-                    ? []
-                    : _hourlyWeather!.relativeHumidity,
-                windSpeed: _hourlyWeather == null
-                    ? []
-                    : _hourlyWeather!.windSpeed,
-                surfacePressure: _hourlyWeather == null
-                    ? []
-                    : _hourlyWeather!.surfacePressure,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

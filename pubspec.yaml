@@ -1,5 +1,5 @@
 name: meteogram
-description: "Meteogram"
+description: "AzMeteoGram"
 publish_to: 'none'
 version: 0.1.0
 
@@ -7,14 +7,17 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  fl_chart: ^1.0.0
   flutter:
     sdk: flutter
-  google_fonts: ^6.3.0
   http: ^1.4.0
   intl: ^0.20.2
   lottie: ^3.3.1
   provider: ^6.1.5
   shared_preferences: ^2.5.3
+  syncfusion_flutter_charts: ^30.2.6
+  flutter_launcher_icons: ^0.14.4
+
  
 
 dev_dependencies:
@@ -22,10 +25,21 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
 
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/meteogram-app.png"
+  min_sdk_android: 21
+
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
     - assets/images/white/
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+
 
 

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import '../controllers/color_controller.dart';
+import '../models/current_weather_model.dart';
+import '../screens/details_screen.dart';
 import '../theme/theme.dart';
 
 class CardWidget extends StatelessWidget {
   final String supTopStr;
   final double supTopSize;
+  final String supTopStr2;
+  final double supTopSize2;
   final String topStr;
   final double topSize;
   final String centerStr;
@@ -14,11 +18,14 @@ class CardWidget extends StatelessWidget {
   final String bottomStr;
   final double bottomSize;
   final double width;
+  final CurrentWeather? curWeather;
 
   const CardWidget({
     super.key,
     required this.supTopStr,
     required this.supTopSize,
+    required this.supTopStr2,
+    required this.supTopSize2,
     required this.topStr,
     required this.topSize,
     required this.centerStr,
@@ -28,6 +35,7 @@ class CardWidget extends StatelessWidget {
     required this.bottomStr,
     required this.bottomSize,
     required this.width,
+    required this.curWeather,
   });
 
   @override
@@ -41,7 +49,7 @@ class CardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: mainBorderColor.bColor.withOpacity(0.5),
+            color: mainBorderColor.bColor.withAlpha((255.0 * 0.5).round()),
             spreadRadius: 2,
             blurRadius: 100,
           ),
@@ -53,96 +61,143 @@ class CardWidget extends StatelessWidget {
           side: BorderSide(color: mainBorderColor.bColor, width: 2),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 2,
-                    right: 12,
-                    bottom: 2,
-                  ),
-                  child: Text(
-                    supTopStr,
-                    style: TextStyle(fontSize: supTopSize, color: textColor),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Flexible(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 2,
-                    right: 12,
-                    bottom: 2,
-                  ),
-                  child: Text(
-                    topStr,
-                    style: TextStyle(fontSize: topSize, color: textColor),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Flexible(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 2,
-                    right: 12,
-                    bottom: 2,
-                  ),
-                  child: Text(
-                    centerStr,
-                    style: TextStyle(fontSize: centerSize, color: textColor),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Flexible(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 2,
-                    right: 12,
-                    bottom: 2,
-                  ),
-                  child: Text(
-                    centerBottomStr,
-                    style: TextStyle(
-                      fontSize: centerBottomSize,
-                      color: textColor,
+        child: Stack(
+          children: [
+            Positioned(
+              right: 0,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (context) =>
+                          DetailsScreen(curWeather: curWeather!),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+                  );
+                },
+                icon: Icon(Icons.my_library_books_outlined, color: textColor),
               ),
-              Flexible(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 2,
-                    right: 12,
-                    bottom: 2,
+            ),
+            Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        supTopStr,
+                        style: TextStyle(
+                          fontSize: supTopSize,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    bottomStr,
-                    style: TextStyle(fontSize: bottomSize, color: textColor),
-                    textAlign: TextAlign.center,
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        supTopStr2,
+                        style: TextStyle(
+                          fontSize: supTopSize2,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
-                ),
+                  Flexible(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        topStr,
+                        style: TextStyle(fontSize: topSize, color: textColor),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        centerStr,
+                        style: TextStyle(
+                          fontSize: centerSize,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        centerBottomStr,
+                        style: TextStyle(
+                          fontSize: centerBottomSize,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        top: 2,
+                        right: 12,
+                        bottom: 2,
+                      ),
+                      child: Text(
+                        bottomStr,
+                        style: TextStyle(
+                          fontSize: bottomSize,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -175,7 +230,7 @@ class CardWidgetSmall extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: mainBorderColor.bColor.withOpacity(0.5),
+            color: mainBorderColor.bColor.withAlpha((255.0 * 0.5).round()),
             spreadRadius: 2,
             blurRadius: 100,
           ),

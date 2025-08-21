@@ -1,10 +1,8 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
-
-import 'package:meteogram/widgets/datatable_widget.dart';
-
+import '../widgets/datatable_widget.dart';
 import '../controllers/color_controller.dart';
 import '../theme/theme.dart';
+import 'meteogram_chart_widget.dart';
 
 class TabWidget extends StatefulWidget {
   final List<String> time;
@@ -90,7 +88,13 @@ class _TabWidgetState extends State<TabWidget>
                   windSpeed: widget.windSpeed,
                   surfacePressure: widget.surfacePressure,
                 ),
-                Text('MeteogramWidget'),
+                MeteogramWidget(
+                  time: widget.time,
+                  temperature: widget.temperature,
+                  relativeHumidity: widget.relativeHumidity,
+                  windSpeed: widget.windSpeed,
+                  surfacePressure: widget.surfacePressure,
+                ),
               ],
               //children: [DataTableWidget(), MeteogramWidget()],
             ),

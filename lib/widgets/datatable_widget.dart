@@ -29,7 +29,7 @@ class DataTableWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: mainBorderColor.bColor.withOpacity(0.5),
+            color: mainBorderColor.bColor.withAlpha((255.0 * 0.5).round()),
             spreadRadius: 2,
             blurRadius: 100,
           ),
@@ -132,7 +132,8 @@ class DataTableWidget extends StatelessWidget {
                                 flex: 1,
                                 child: Center(
                                   child: Text(
-                                    surfacePressure[index].toString(),
+                                    (surfacePressure[index] / 1.333220)
+                                        .toStringAsFixed(2),
                                     style: textStyle,
                                     textAlign: TextAlign.center,
                                   ),
@@ -152,7 +153,7 @@ class DataTableWidget extends StatelessWidget {
                                 flex: 1,
                                 child: Center(
                                   child: Text(
-                                    windSpeed[index].toString(),
+                                    (windSpeed[index] / 3.6).toStringAsFixed(2),
                                     style: textStyle,
                                     textAlign: TextAlign.center,
                                   ),

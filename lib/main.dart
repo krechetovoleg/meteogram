@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../screens/main_screen.dart';
 import '../theme/theme.dart';
 
@@ -22,9 +21,9 @@ class MainApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Meteogram',
+      title: 'AzMeteoGram',
       theme: ThemeData(
-        fontFamily: GoogleFonts.roboto().fontFamily,
+        fontFamily: 'Roboto',
         appBarTheme: const AppBarTheme(
           backgroundColor: backgroundColor,
           elevation: 0,
