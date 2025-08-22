@@ -10,6 +10,7 @@ class DetailsScreen extends StatelessWidget {
   DetailsScreen({super.key, required this.curWeather});
 
   final mainBorderColor = ColorController();
+  final double widthScreen = double.infinity;
 
   String _windDir(int wd) {
     String res = '';
@@ -169,6 +170,7 @@ class DetailsScreen extends StatelessWidget {
                           : curWeather!.snowfall.toString(),
                       unitMeasure: '(см за послед.час)',
                     ),
+
                     Text(
                       'По данным сервиса https://open-meteo.com/',
                       style: TextStyle(fontSize: 10, color: textColor),
@@ -197,37 +199,56 @@ class DetailsWidget extends StatelessWidget {
   final String valParam;
   final String unitMeasure;
 
+  final double widthScreen = double.infinity;
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Card(
-        color: backgroundColor,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: mainBorderColor.bColor, width: 2),
+      child: Container(
+        width: widthScreen,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: mainBorderColor.bColor.withAlpha((255.0 * 0.5).round()),
+              spreadRadius: 2,
+              blurRadius: 100,
+            ),
+          ],
         ),
-        child: SizedBox.expand(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    nameParam,
-                    style: TextStyle(fontSize: 14, color: textColor),
-                    textAlign: TextAlign.left,
+        child: Card(
+          color: backgroundColor,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: mainBorderColor.bColor, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox.expand(
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      nameParam,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
                   ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    '$valParam $unitMeasure',
-                    style: TextStyle(fontSize: 14, color: textColor),
-                    textAlign: TextAlign.left,
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      '$valParam $unitMeasure',
+                      style: TextStyle(fontSize: 14, color: textColor),
+                      textAlign: TextAlign.left,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

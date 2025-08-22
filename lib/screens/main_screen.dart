@@ -206,38 +206,53 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
         title: _visibleSearchField
-            ? Card(
-                color: backgroundColor,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: mainBorderColor.bColor, width: 2),
+            ? Container(
+                width: widthScreen,
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: mainBorderColor.bColor.withAlpha(
+                        (255.0 * 0.5).round(),
+                      ),
+                      spreadRadius: 2,
+                      blurRadius: 100,
+                    ),
+                  ],
                 ),
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        _searchController.text = '';
-                      },
-                      icon: const Icon(Icons.cancel_outlined),
-                      color: textColor,
-                    ),
-                    hintStyle: const TextStyle(color: textColor),
-                    hintText: 'Поиск...',
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsetsGeometry.only(
-                      left: 8,
-                      right: 8,
-                      top: 12,
-                    ),
+                child: Card(
+                  color: backgroundColor,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: mainBorderColor.bColor, width: 2),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  style: const TextStyle(color: textColor),
-                  onChanged: (value) {
-                    setState(() {
-                      _visibleSearchField = true;
-                    });
-                  },
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          _searchController.text = '';
+                        },
+                        icon: const Icon(Icons.cancel_outlined),
+                        color: textColor,
+                      ),
+                      hintStyle: const TextStyle(color: textColor),
+                      hintText: 'Поиск...',
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsetsGeometry.only(
+                        left: 8,
+                        right: 8,
+                        top: 12,
+                      ),
+                    ),
+                    style: const TextStyle(color: textColor),
+                    onChanged: (value) {
+                      setState(() {
+                        _visibleSearchField = true;
+                      });
+                    },
+                  ),
                 ),
               )
             : Text(
@@ -353,110 +368,128 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   SingleChildScrollView(
                     child: _ciySearch != null && _ciySearch!.cityName.isNotEmpty
-                        ? Card(
-                            color: backgroundColor,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: mainBorderColor.bColor,
-                                width: 2,
-                              ),
+                        ? Container(
+                            width: widthScreen,
+                            decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: _ciySearch!.cityName.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    _ciySearch == null ||
-                                            _ciySearch!.cityName.isEmpty
-                                        ? () {}
-                                        : {
-                                            _getCurrentWeather(
-                                              _ciySearch!
-                                                  .latitude[index > 0
-                                                      ? (index - 1)
-                                                      : 0]
-                                                  .toString(),
-                                              _ciySearch!
-                                                  .longitude[index > 0
-                                                      ? (index - 1)
-                                                      : 0]
-                                                  .toString(),
-                                              _ciySearch!.timezone[index > 0
-                                                  ? (index - 1)
-                                                  : 0],
-                                            ),
-                                            _searchController.text =
-                                                '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
-                                            setState(() {
-                                              _visibleSearchField = false;
-                                              cityNamePref =
-                                                  _ciySearch!.cityName[index > 0
-                                                      ? (index - 1)
-                                                      : 0];
-                                              countryPref =
-                                                  _ciySearch!.country[index > 0
-                                                      ? (index - 1)
-                                                      : 0];
-                                              latitudePref = _ciySearch!
-                                                  .latitude[index > 0
-                                                      ? (index - 1)
-                                                      : 0]
-                                                  .toString();
-                                              longitudePref = _ciySearch!
-                                                  .longitude[index > 0
-                                                      ? (index - 1)
-                                                      : 0]
-                                                  .toString();
-                                              timezonePref =
-                                                  _ciySearch!.timezone[index > 0
-                                                      ? (index - 1)
-                                                      : 0];
-
-                                              admin1Pref =
-                                                  _ciySearch!.admin1[index > 0
-                                                      ? (index - 1)
-                                                      : 0];
-                                            }),
-
-                                            _savePref(
-                                              cityNamePref,
-                                              countryPref,
-                                              latitudePref,
-                                              longitudePref,
-                                              timezonePref,
-                                              admin1Pref,
-                                            ),
-
-                                            _readPref(true),
-                                          };
-                                  },
-                                  child: ListTile(
-                                    title: Text(
-                                      _ciySearch == null ||
-                                              _ciySearch!.cityName.isEmpty
-                                          ? ''
-                                          : '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      _ciySearch == null ||
-                                              _ciySearch!.cityName.isEmpty
-                                          ? ''
-                                          : 'lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: textColor,
-                                      ),
-                                    ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: mainBorderColor.bColor.withAlpha(
+                                    (255.0 * 0.5).round(),
                                   ),
-                                );
-                              },
+                                  spreadRadius: 2,
+                                  blurRadius: 100,
+                                ),
+                              ],
+                            ),
+                            child: Card(
+                              color: backgroundColor,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: mainBorderColor.bColor,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: _ciySearch!.cityName.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      _ciySearch == null ||
+                                              _ciySearch!.cityName.isEmpty
+                                          ? () {}
+                                          : {
+                                              _getCurrentWeather(
+                                                _ciySearch!
+                                                    .latitude[index > 0
+                                                        ? (index - 1)
+                                                        : 0]
+                                                    .toString(),
+                                                _ciySearch!
+                                                    .longitude[index > 0
+                                                        ? (index - 1)
+                                                        : 0]
+                                                    .toString(),
+                                                _ciySearch!.timezone[index > 0
+                                                    ? (index - 1)
+                                                    : 0],
+                                              ),
+                                              _searchController.text =
+                                                  '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
+                                              setState(() {
+                                                _visibleSearchField = false;
+                                                cityNamePref =
+                                                    _ciySearch!.cityName[index >
+                                                            0
+                                                        ? (index - 1)
+                                                        : 0];
+                                                countryPref =
+                                                    _ciySearch!.country[index >
+                                                            0
+                                                        ? (index - 1)
+                                                        : 0];
+                                                latitudePref = _ciySearch!
+                                                    .latitude[index > 0
+                                                        ? (index - 1)
+                                                        : 0]
+                                                    .toString();
+                                                longitudePref = _ciySearch!
+                                                    .longitude[index > 0
+                                                        ? (index - 1)
+                                                        : 0]
+                                                    .toString();
+                                                timezonePref =
+                                                    _ciySearch!.timezone[index >
+                                                            0
+                                                        ? (index - 1)
+                                                        : 0];
+
+                                                admin1Pref =
+                                                    _ciySearch!.admin1[index > 0
+                                                        ? (index - 1)
+                                                        : 0];
+                                              }),
+
+                                              _savePref(
+                                                cityNamePref,
+                                                countryPref,
+                                                latitudePref,
+                                                longitudePref,
+                                                timezonePref,
+                                                admin1Pref,
+                                              ),
+
+                                              _readPref(true),
+                                            };
+                                    },
+                                    child: ListTile(
+                                      title: Text(
+                                        _ciySearch == null ||
+                                                _ciySearch!.cityName.isEmpty
+                                            ? ''
+                                            : '${_ciySearch!.cityName[index > 0 ? (index - 1) : 0]} (${_ciySearch!.country[index > 0 ? (index - 1) : 0]} / ${_ciySearch!.admin1[index > 0 ? (index - 1) : 0]})',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: textColor,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        _ciySearch == null ||
+                                                _ciySearch!.cityName.isEmpty
+                                            ? ''
+                                            : 'lat: ${_ciySearch!.latitude[index > 0 ? (index - 1) : 0].toString()} ; lon: ${_ciySearch!.longitude[index > 0 ? (index - 1) : 0].toString()}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: textColor,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           )
                         : SizedBox(height: 0),

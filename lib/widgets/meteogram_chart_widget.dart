@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/color_controller.dart';
 import '../models/hourly_weather_model.dart';
+import '../screens/zoom_meteogram_screen.dart';
 import '../theme/theme.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -52,72 +53,97 @@ class MeteogramWidget extends StatelessWidget {
         width: (widthScreen * 0.99).roundToDouble(),
         child: Card(
           color: backgroundColor,
-          child: SfCartesianChart(
-            legend: const Legend(
-              isVisible: true,
-              textStyle: TextStyle(color: textColor, fontSize: 10.0),
-              position: LegendPosition.bottom,
-              overflowMode: LegendItemOverflowMode.wrap,
-            ),
-            crosshairBehavior: CrosshairBehavior(
-              enable: true,
-              activationMode: ActivationMode.longPress,
-            ),
-            zoomPanBehavior: zoomPanBehavior,
-            plotAreaBorderWidth: 0,
-            backgroundColor: backgroundColor,
-            primaryXAxis: const CategoryAxis(
-              title: AxisTitle(
-                text: 'Время',
-                textStyle: TextStyle(color: textColor, fontSize: 10),
-              ),
-            ),
-            primaryYAxis: const NumericAxis(
-              title: AxisTitle(
-                text: 'Температура - Влажность - Скорость ветра',
-                textStyle: TextStyle(color: textColor, fontSize: 10),
-              ),
-            ),
-            tooltipBehavior: TooltipBehavior(enable: true),
-            axes: const [
-              NumericAxis(
-                name: 'yAsisPressure',
-                title: AxisTitle(
-                  text: 'Давление',
-                  textStyle: TextStyle(color: textColor, fontSize: 10),
+          child: Stack(
+            children: [
+              SfCartesianChart(
+                legend: const Legend(
+                  isVisible: true,
+                  textStyle: TextStyle(color: textColor, fontSize: 10.0),
+                  position: LegendPosition.bottom,
+                  overflowMode: LegendItemOverflowMode.wrap,
                 ),
-                opposedPosition: true,
-                interval: 1.0,
+                crosshairBehavior: CrosshairBehavior(
+                  enable: true,
+                  activationMode: ActivationMode.longPress,
+                ),
+                zoomPanBehavior: zoomPanBehavior,
+                plotAreaBorderWidth: 0,
+                backgroundColor: backgroundColor,
+                primaryXAxis: const CategoryAxis(
+                  title: AxisTitle(
+                    text: 'Время',
+                    textStyle: TextStyle(color: textColor, fontSize: 10),
+                  ),
+                ),
+                primaryYAxis: const NumericAxis(
+                  title: AxisTitle(
+                    text: 'Температура - Влажность - Скорость ветра',
+                    textStyle: TextStyle(color: textColor, fontSize: 10),
+                  ),
+                ),
+                tooltipBehavior: TooltipBehavior(enable: true),
+                axes: const [
+                  NumericAxis(
+                    name: 'yAsisPressure',
+                    title: AxisTitle(
+                      text: 'Давление',
+                      textStyle: TextStyle(color: textColor, fontSize: 10),
+                    ),
+                    opposedPosition: true,
+                    interval: 1.0,
+                  ),
+                ],
+                series: <CartesianSeries>[
+                  SplineSeries<HourlyWeatherChartData, String>(
+                    name: 'Тем-ра',
+                    dataSource: hWCD,
+                    xValueMapper: (HourlyWeatherChartData val, _) => val.time,
+                    yValueMapper: (HourlyWeatherChartData val, _) =>
+                        val.temperature,
+                  ),
+                  SplineSeries<HourlyWeatherChartData, String>(
+                    yAxisName: 'yAsisPressure',
+                    name: 'Давление',
+                    dataSource: hWCD,
+                    xValueMapper: (HourlyWeatherChartData val, _) => val.time,
+                    yValueMapper: (HourlyWeatherChartData val, _) =>
+                        val.surfacePressure,
+                  ),
+                  SplineSeries<HourlyWeatherChartData, String>(
+                    name: 'Влажность',
+                    dataSource: hWCD,
+                    xValueMapper: (HourlyWeatherChartData val, _) => val.time,
+                    yValueMapper: (HourlyWeatherChartData val, _) =>
+                        val.relativeHumidity,
+                  ),
+                  SplineSeries<HourlyWeatherChartData, String>(
+                    name: 'Скорость ветра',
+                    dataSource: hWCD,
+                    xValueMapper: (HourlyWeatherChartData val, _) => val.time,
+                    yValueMapper: (HourlyWeatherChartData val, _) =>
+                        val.windSpeed,
+                  ),
+                ],
               ),
-            ],
-            series: <CartesianSeries>[
-              SplineSeries<HourlyWeatherChartData, String>(
-                name: 'Тем-ра',
-                dataSource: hWCD,
-                xValueMapper: (HourlyWeatherChartData val, _) => val.time,
-                yValueMapper: (HourlyWeatherChartData val, _) =>
-                    val.temperature,
-              ),
-              SplineSeries<HourlyWeatherChartData, String>(
-                yAxisName: 'yAsisPressure',
-                name: 'Давление',
-                dataSource: hWCD,
-                xValueMapper: (HourlyWeatherChartData val, _) => val.time,
-                yValueMapper: (HourlyWeatherChartData val, _) =>
-                    val.surfacePressure,
-              ),
-              SplineSeries<HourlyWeatherChartData, String>(
-                name: 'Влажность',
-                dataSource: hWCD,
-                xValueMapper: (HourlyWeatherChartData val, _) => val.time,
-                yValueMapper: (HourlyWeatherChartData val, _) =>
-                    val.relativeHumidity,
-              ),
-              SplineSeries<HourlyWeatherChartData, String>(
-                name: 'Скорость ветра',
-                dataSource: hWCD,
-                xValueMapper: (HourlyWeatherChartData val, _) => val.time,
-                yValueMapper: (HourlyWeatherChartData val, _) => val.windSpeed,
+              Positioned(
+                right: 0,
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => ZoomMeteogramScreen(
+                          time: time,
+                          temperature: temperature,
+                          relativeHumidity: relativeHumidity,
+                          windSpeed: windSpeed,
+                          surfacePressure: surfacePressure,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.troubleshoot_outlined, color: textColor),
+                ),
               ),
             ],
           ),
