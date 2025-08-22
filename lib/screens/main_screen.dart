@@ -366,6 +366,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                     ],
                   ),
+
                   SingleChildScrollView(
                     child: _ciySearch != null && _ciySearch!.cityName.isNotEmpty
                         ? Container(
