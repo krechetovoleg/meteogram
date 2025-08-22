@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meteogram/services/hourly_weather_services.dart';
+import '../services/hourly_weather_services.dart';
 import '../controllers/color_controller.dart';
 import '../models/hourly_weather_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';

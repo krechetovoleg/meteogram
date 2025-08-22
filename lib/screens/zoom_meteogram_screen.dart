@@ -21,7 +21,7 @@ class ZoomMeteogramScreen extends StatelessWidget {
     required this.surfacePressure,
   });
 
-  var mainBorderColor = ColorController();
+  final mainBorderColor = ColorController();
   final zoomPanBehavior = ZoomPanBehavior(enablePinching: true);
   final double widthScreen = double.infinity;
 

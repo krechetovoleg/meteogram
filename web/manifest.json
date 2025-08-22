@@ -1,6 +1,6 @@
 {
-    "name": "meteogram",
-    "short_name": "meteogram",
+    "name": "azmeteogram",
+    "short_name": "azmeteogram",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
