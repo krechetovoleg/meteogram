@@ -102,9 +102,16 @@ class _MainScreenState extends State<MainScreen> {
       if (cityNamePref != '') {
         countryPref = '($countryPref / $admin1Pref)';
         _searchController.text = '$cityNamePref $countryPref';
+      } else {
+        cityNamePref = 'Москва';
+        countryPref = '(Россия / Москва)';
+        _searchController.text = 'Москва (Россия / Москва)';
+        latitudePref = '55.75';
+        longitudePref = '37.625';
+        timezonePref = 'Europe/Moscow';
       }
 
-      if (latitudePref != '' && longitudePref != '' && onlyRead) {
+      if (latitudePref != '' && longitudePref != '') {
         _getCurrentWeather(latitudePref, longitudePref, timezonePref);
         _getHourlyWeather(latitudePref, longitudePref, timezonePref);
       }
@@ -271,7 +278,7 @@ class _MainScreenState extends State<MainScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Expanded(
-                        flex: 20,
+                        flex: 25,
                         child: CardWidget(
                           supTopStr: cityNamePref,
                           supTopSize: 16.0,
@@ -297,7 +304,7 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       Expanded(
-                        flex: 10,
+                        flex: 15,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           mainAxisSize: MainAxisSize.max,
@@ -345,7 +352,7 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       Expanded(
-                        flex: 65,
+                        flex: 60,
                         child: TabWidget(
                           time: _hourlyWeather == null
                               ? []
